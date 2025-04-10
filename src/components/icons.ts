@@ -1,3 +1,4 @@
+'use client';
 
 import {ArrowRight, Check, ChevronsUpDown, Circle, Copy, Edit, ExternalLink, File, HelpCircle, Home, Loader2, Mail, MessageSquare, Moon, Pause, Plus, PlusCircle, Search, Server, Settings, Share2, Shield, Sun, Trash, User, X, Workflow} from 'lucide-react';
 
@@ -30,9 +31,8 @@ const Icons = {
   trash: Trash,
   user: User,
   pause: Pause,
-  record: (props: React.SVGProps<SVGSVGElement>) => (
+  recording: (props: React.SVGProps<SVGSVGElement>) => (
     <svg
-      {...props}
       xmlns="http://www.w3.org/2000/svg"
       width="24"
       height="24"
@@ -42,6 +42,7 @@ const Icons = {
       strokeWidth="2"
       strokeLinecap="round"
       strokeLinejoin="round"
+      {...props}
     >
       <rect width="16" height="16" x="4" y="4" rx="8" />
     </svg>
@@ -49,5 +50,3 @@ const Icons = {
 };
 
 export {Icons};
-
-    

@@ -9,25 +9,25 @@ body {
 
 @layer base {
   :root {
-    --background: 0 0% 96.1%;
-    --foreground: 240 5.9% 10%;
+    --background: 220 14% 96%;
+    --foreground: 220 10% 3.9%;
     --card: 0 0% 100%;
-    --card-foreground: 240 5.9% 10%;
+    --card-foreground: 220 10% 3.9%;
     --popover: 0 0% 100%;
-    --popover-foreground: 240 5.9% 10%;
-    --primary: 225 60% 27%;
+    --popover-foreground: 220 10% 3.9%;
+    --primary: 231 64% 30%;  /* Dark blue (#1A237E) in HSL */
     --primary-foreground: 0 0% 98%;
-    --secondary: 0 0% 96.1%;
-    --secondary-foreground: 240 5.9% 10%;
+    --secondary: 0 0% 96.1%; /* Light gray (#F5F5F5) in HSL */
+    --secondary-foreground: 220 10% 3.9%;
     --muted: 0 0% 96.1%;
-    --muted-foreground: 0 0% 45.1%;
-    --accent: 172 100% 42%;
+    --muted-foreground: 220 8.9% 46.1%;
+    --accent: 180 100% 42%; /* Teal (#00BCD4) in HSL */
     --accent-foreground: 0 0% 98%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 89.8%;
-    --input: 0 0% 89.8%;
-    --ring: 225 60% 27%;
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 224.3 76.3% 48%;
     --chart-1: 12 76% 61%;
     --chart-2: 173 58% 39%;
     --chart-3: 197 37% 24%;
@@ -44,19 +44,19 @@ body {
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
   .dark {
-    --background: 240 5.9% 10%;
-    --foreground: 0 0% 96.1%;
-    --card: 240 5.9% 10%;
-    --card-foreground: 0 0% 96.1%;
-    --popover: 240 5.9% 10%;
-    --popover-foreground: 0 0% 96.1%;
-    --primary: 0 0% 96.1%;
-    --primary-foreground: 225 60% 27%;
-    --secondary: 0 0% 14.9%;
+    --background: 220 10% 3.9%;
+    --foreground: 0 0% 98%;
+    --card: 220 10% 3.9%;
+    --card-foreground: 0 0% 98%;
+    --popover: 220 10% 3.9%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 0 0% 98%; /* Dark blue (#1A237E) in HSL */
+    --primary-foreground: 231 64% 30%; /* Light gray (#F5F5F5) in HSL */
+    --secondary: 0 0% 14.9%; /* Teal (#00BCD4) in HSL */
     --secondary-foreground: 0 0% 98%;
     --muted: 0 0% 14.9%;
     --muted-foreground: 0 0% 63.9%;
-    --accent: 172 100% 42%;
+    --accent: 180 100% 42%; /* Teal (#00BCD4) in HSL */
     --accent-foreground: 0 0% 98%;
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 98%;
@@ -87,4 +87,3 @@ body {
     @apply bg-background text-foreground;
   }
 }
-
