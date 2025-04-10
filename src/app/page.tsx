@@ -184,7 +184,7 @@ export default function Home() {
 
         {/* Analyze Button */}
         <Button
-          size="lg"
+          size="lg" // Large button size
           className="px-10 py-7 text-xl bg-blue-900 hover:bg-blue-800 text-white rounded-lg shadow-lg transition-transform transform hover:scale-105 disabled:opacity-50 disabled:scale-100" // Custom styles: primary blue, larger padding/text, shadow, hover effect, disabled state
           onClick={analyzeAudio}
           disabled={!audioFile || isRecording} // Disable if no audio file OR currently recording
