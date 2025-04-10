@@ -21,7 +21,6 @@ export default function Home() {
     const file = event.target.files?.[0];
     if (file) {
       setAudioFile(file);
-      // Add feedback: maybe a subtle animation or log
       console.log('File selected:', file.name);
     }
   };
@@ -54,16 +53,15 @@ export default function Home() {
         stream.getTracks().forEach((track) => track.stop());
         setMediaStream(null);
         setIsRecording(false);
-        console.log('Recording stopped, file created.'); // Feedback
+        console.log('Recording stopped, file created.');
       };
       mediaRecorder.current.start();
       setIsRecording(true);
-      console.log('Recording started.'); // Feedback
+      console.log('Recording started.');
     } catch (error) {
       console.error('Error starting recording:', error);
       setMediaStream(null);
       setIsRecording(false);
-      // Add user feedback - e.g., toast notification (requires setup)
       alert('Could not start recording. Please ensure microphone permissions are granted.');
     }
   };
@@ -71,9 +69,7 @@ export default function Home() {
   const stopRecording = () => {
     if (mediaRecorder.current && mediaRecorder.current.state === 'recording') {
       mediaRecorder.current.stop();
-      // Feedback happens in onstop handler
     } else {
-      // Fallback cleanup if state is somehow wrong
       if (mediaStream) {
          mediaStream.getTracks().forEach(track => track.stop());
          setMediaStream(null);
@@ -85,31 +81,24 @@ export default function Home() {
 
   const analyzeAudio = () => {
     if (!audioFile) {
-      // Better feedback needed here (e.g., toast)
       alert('Please upload or record an audio file first.');
       return;
     }
-    console.log('Analyzing audio:', audioFile.name, 'with script:', scriptText ? 'Yes' : 'No'); // Feedback
-    // Add logic to show analysis results or loading state
-    // Simulate analysis start feedback
-    // setIsAnalyzing(true); // Need state for this
+    console.log('Analyzing audio:', audioFile.name, 'with script:', scriptText ? 'Yes' : 'No');
+    // Add analysis logic here
   };
 
   return (
-    // Main container: Full height, dark background, modern feel
     <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-800 text-white p-8">
-
-      {/* Header Section */}
       <header className="mb-12 text-center">
         <h1 className="text-6xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-orange-400 via-red-500 to-red-600 mb-4 animate-pulse-slow">
-          SpeakUp Studio
+          Voice Polisher
         </h1>
         <p className="text-xl text-gray-300">
           Refine your voice recordings with cutting-edge analysis.
         </p>
       </header>
 
-      {/* Main Interaction Card */}
       <Card className="w-full max-w-2xl bg-gray-800 bg-opacity-70 border-gray-700 shadow-xl backdrop-blur-sm">
         <CardContent className="p-8 space-y-8">
 
@@ -135,7 +124,6 @@ export default function Home() {
                 </>
               )}
             </Button>
-            {/* Conditionally render Recording Indicator */}
             {isRecording && <RecordingIndicator stream={mediaStream} />}
           </div>
 
@@ -146,26 +134,30 @@ export default function Home() {
             <div className="flex-grow border-t border-gray-600"></div>
           </div>
 
-          {/* Upload Section */}
+          {/* Upload Section - Improved Styling */}
           <div className="flex flex-col items-center space-y-4">
             <p className="text-2xl font-semibold text-gray-100">
               Upload your own audio file
             </p>
             <div className="w-full max-w-md">
-              <label htmlFor="audioUpload" className="sr-only">Upload audio file</label>
-              <Input
-                type="file"
-                id="audioUpload"
-                accept="audio/*" // Be more specific about acceptable file types
-                className="w-full text-base text-gray-300 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-gray-700 file:text-gray-200 hover:file:bg-gray-600 cursor-pointer transition-colors duration-200 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-red-500"
-                onChange={handleFileChange}
-              />
+              <label htmlFor="audioUpload" 
+                     className="flex items-center justify-center w-full px-4 py-3 border-2 border-dashed border-gray-600 rounded-lg cursor-pointer hover:border-red-500 hover:bg-gray-700 transition-colors duration-200">
+                <Icons.upload className="mr-2 h-5 w-5 text-gray-400" />
+                <span className="text-base text-gray-300">Choose file or drag & drop</span>
+                <Input
+                  type="file"
+                  id="audioUpload"
+                  accept="audio/*"
+                  className="sr-only" // Hide the default input visually
+                  onChange={handleFileChange}
+                />
+              </label>
             </div>
           </div>
 
-          {/* Display selected/recorded file */}
+          {/* Display selected/recorded file - Removed background box */}
           {audioFile && !isRecording && (
-            <div className="my-4 p-4 bg-gray-700 border border-gray-600 rounded-lg text-green-400 text-center animate-fade-in">
+            <div className="my-4 text-green-400 text-center animate-fade-in">
               Ready to analyze: <span className="font-semibold">{audioFile.name}</span>
             </div>
           )}
@@ -181,7 +173,7 @@ export default function Home() {
             <Textarea
               id="scriptText"
               placeholder="Pasting your script here helps the analysis..."
-              className="w-full p-4 bg-gray-700 border-gray-600 rounded-lg shadow-sm focus:ring-red-500 focus:border-red-500 text-base text-gray-100 transition-colors duration-200" // Enhanced styling
+              className="w-full p-4 bg-gray-700 border-gray-600 rounded-lg shadow-sm focus:ring-red-500 focus:border-red-500 text-base text-gray-100 transition-colors duration-200"
               rows={4}
               onChange={handleScriptChange}
               value={scriptText}
@@ -197,7 +189,7 @@ export default function Home() {
               size="lg"
               className="px-10 py-6 text-xl bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white rounded-lg shadow-lg transition-all duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-red-500 disabled:opacity-50 disabled:scale-100 disabled:cursor-not-allowed disabled:from-gray-500 disabled:to-gray-600"
               onClick={analyzeAudio}
-              disabled={!audioFile || isRecording} // Disable if no audio file OR currently recording
+              disabled={!audioFile || isRecording}
             >
               Analyze Audio
             </Button>
@@ -208,17 +200,8 @@ export default function Home() {
 
       {/* Placeholder for Audio Timeline/Results */}
       <div className="mt-16 w-full max-w-4xl">
-        {/* Conditionally render timeline or results once analysis is done */}
-        {/* Example: Add a placeholder or loading indicator */}
-        {/* {isAnalyzing && <p className="text-center text-xl text-gray-400">Analyzing...</p>} */}
-        {/* {analysisResults && <DisplayResults results={analysisResults} />} */}
-        {/* <AudioTimeline /> */}
+        {/* Add placeholder or results display here */}
       </div>
-
-      {/* Footer (Optional) */}
-      {/* <footer className="mt-16 text-gray-500 text-sm">
-        Footer content here
-      </footer> */}
 
       {/* Basic CSS for animations (can be moved to globals.css) */}
       <style jsx global>{`
