@@ -31,21 +31,14 @@ const Icons = {
   trash: Trash,
   user: User,
   pause: Pause,
-  record: (props: React.SVGProps<SVGSVGElement>) => (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="currentColor"
-      stroke="currentColor"
-      strokeWidth="0"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-
-    />
-  ),
+  record: (props: React.SVGProps<SVGSVGElement>) => {
+    return (<svg
+        {...props} // Props spread correctly here
+        viewBox="0 0 24 24"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg">
+        <circle cx="12" cy="12" r="10" fill="currentColor"/>
+    </svg>)
+  },
 };
-
 export {Icons};

@@ -6,6 +6,7 @@ import {Button} from '@/components/ui/button';
 import {Card, CardContent, CardDescription, CardHeader, CardTitle} from '@/components/ui/card';
 import {Textarea} from '@/components/ui/textarea';
 import {Icons} from '@/components/icons';
+import {Input} from '@/components/ui/input'; // Import Input component
 
 export default function Home() {
   const [audioFile, setAudioFile] = useState<File | null>(null);
@@ -71,11 +72,8 @@ export default function Home() {
           <CardDescription>Analyze and polish your voice recordings.</CardDescription>
         </CardHeader>
         <CardContent className="grid gap-4">
-          <div className="flex flex-col space-y-2">
-            <label htmlFor="audioUpload">Upload Audio File</label>
-            <input type="file" id="audioUpload" className="border rounded p-2" onChange={handleFileChange} />
-          </div>
           <div className="flex items-center space-x-2">
+            <p>Record your own audio now</p>
             <Button variant="secondary" onClick={isRecording ? stopRecording : startRecording}>
               {isRecording ? (
                 <>
@@ -85,23 +83,30 @@ export default function Home() {
               ) : (
                 <>
                   <Icons.record className="mr-2 h-4 w-4" />
-                  Start Recording
+                  Record
                 </>
               )}
             </Button>
-            {audioFile && <p>Audio file: {audioFile.name}</p>}
           </div>
+
+          <p className="font-bold text-lg text-center">OR</p>
+
+          <div className="flex items-center space-x-2">
+            <p>Upload your own audio</p>
+            {/* Replace the basic input with the ShadCN Input for styling */}
+            <Input type="file" id="audioUpload" className="border rounded p-2" onChange={handleFileChange} />
+          </div>
+
+          {audioFile && <p>Selected file: {audioFile.name}</p>}
+
           <div className="flex flex-col space-y-2">
-            <label htmlFor="scriptText">Paste Script</label>
-            <Textarea id="scriptText" placeholder="Paste your script here..." className="border rounded p-2" onChange={handleScriptChange} />
+            <label htmlFor="scriptText">Paste Script (Optional)</label>
+            <Textarea id="scriptText" placeholder="Paste your script here to compare against the audio..." className="border rounded p-2" onChange={handleScriptChange} />
           </div>
-          <Button onClick={analyzeAudio}>Analyze Audio</Button>
+          <Button onClick={analyzeAudio} disabled={!audioFile}>Analyze Audio</Button>
           <AudioTimeline />
         </CardContent>
       </Card>
     </div>
   );
 }
-
-
-    
