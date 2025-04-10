@@ -6,20 +6,23 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Icons } from '@/components/icons';
 import { Input } from '@/components/ui/input';
-import RecordingIndicator from '@/components/recording-indicator'; // Import the new component
+import RecordingIndicator from '@/components/recording-indicator';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 export default function Home() {
   const [audioFile, setAudioFile] = useState<File | null>(null);
   const [scriptText, setScriptText] = useState('');
   const [isRecording, setIsRecording] = useState(false);
   const [recordedChunks, setRecordedChunks] = useState<Blob[]>([]);
-  const [mediaStream, setMediaStream] = useState<MediaStream | null>(null); // State for the stream
+  const [mediaStream, setMediaStream] = useState<MediaStream | null>(null);
   const mediaRecorder = useRef<MediaRecorder | null>(null);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
       setAudioFile(file);
+      // Add feedback: maybe a subtle animation or log
+      console.log('File selected:', file.name);
     }
   };
 
@@ -32,180 +35,207 @@ export default function Home() {
   const startRecording = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      setMediaStream(stream); // Store the stream
-      setAudioFile(null); // Clear previous recording/upload
-      setRecordedChunks([]); // Clear previous chunks
+      setMediaStream(stream);
+      setAudioFile(null);
+      setRecordedChunks([]);
       mediaRecorder.current = new MediaRecorder(stream);
       mediaRecorder.current.ondataavailable = (event) => {
-        console.log('ondataavailable:', event.data, 'size:', event.data.size);
         if (event.data.size > 0) {
           setRecordedChunks((prev) => [...prev, event.data]);
         }
       };
       mediaRecorder.current.onstop = () => {
-        console.log('onstop: recordedChunks before Blob:', recordedChunks);
         const audioBlob = new Blob(recordedChunks, { type: 'audio/wav' });
         const audioFile = new File([audioBlob], 'recording.wav', {
           type: 'audio/wav',
         });
         setAudioFile(audioFile);
         setRecordedChunks([]);
-        // Stop tracks and clear stream *after* blob is created
         stream.getTracks().forEach((track) => track.stop());
         setMediaStream(null);
         setIsRecording(false);
+        console.log('Recording stopped, file created.'); // Feedback
       };
       mediaRecorder.current.start();
       setIsRecording(true);
+      console.log('Recording started.'); // Feedback
     } catch (error) {
       console.error('Error starting recording:', error);
-      setMediaStream(null); // Ensure stream is null on error
-      setIsRecording(false); // Ensure recording state is false
-      // Consider adding user feedback here, e.g., using a toast notification
+      setMediaStream(null);
+      setIsRecording(false);
+      // Add user feedback - e.g., toast notification (requires setup)
+      alert('Could not start recording. Please ensure microphone permissions are granted.');
     }
   };
 
   const stopRecording = () => {
     if (mediaRecorder.current && mediaRecorder.current.state === 'recording') {
-      mediaRecorder.current.stop(); // This triggers the onstop handler where cleanup happens
+      mediaRecorder.current.stop();
+      // Feedback happens in onstop handler
+    } else {
+      // Fallback cleanup if state is somehow wrong
+      if (mediaStream) {
+         mediaStream.getTracks().forEach(track => track.stop());
+         setMediaStream(null);
+      }
+      setIsRecording(false);
+      console.log('Stopping recording (fallback).');
     }
-    // Redundant cleanup in case onstop doesn't fire, though it should
-    if (mediaStream) {
-       mediaStream.getTracks().forEach(track => track.stop());
-       setMediaStream(null);
-    }
-    setIsRecording(false);
   };
 
   const analyzeAudio = () => {
     if (!audioFile) {
-      // Consider using a more user-friendly notification system (e.g., toast)
+      // Better feedback needed here (e.g., toast)
       alert('Please upload or record an audio file first.');
       return;
     }
-    // Placeholder for analyze audio function
-    console.log('Analyzing audio:', audioFile, 'with script:', scriptText);
+    console.log('Analyzing audio:', audioFile.name, 'with script:', scriptText ? 'Yes' : 'No'); // Feedback
     // Add logic to show analysis results or loading state
+    // Simulate analysis start feedback
+    // setIsAnalyzing(true); // Need state for this
   };
 
   return (
-    // Main container: Full height, centered content, light gray background
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 p-8 text-center">
+    // Main container: Full height, dark background, modern feel
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-800 text-white p-8">
+
       {/* Header Section */}
-      <header className="mb-16">
-        <h1 className="text-5xl font-bold text-blue-900 mb-3">
-          Voice Polisher
+      <header className="mb-12 text-center">
+        <h1 className="text-6xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-orange-400 via-red-500 to-red-600 mb-4 animate-pulse-slow">
+          Voice Up
         </h1>
-        <p className="text-xl text-gray-600">
-          Analyze and polish your voice recordings effortlessly.
+        <p className="text-xl text-gray-300">
+          Refine your voice recordings with cutting-edge analysis.
         </p>
       </header>
 
-      {/* Main Interaction Area */}
-      <main className="w-full max-w-4xl">
-        {/* Grid for Record/Upload Options */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-center mb-12">
+      {/* Main Interaction Card */}
+      <Card className="w-full max-w-2xl bg-gray-800 bg-opacity-70 border-gray-700 shadow-xl backdrop-blur-sm">
+        <CardContent className="p-8 space-y-8">
+
           {/* Record Section */}
-          <div className="flex flex-col items-center md:items-end space-y-4">
-            <p className="text-2xl font-medium text-gray-700">
-              Record your own audio now
+          <div className="flex flex-col items-center space-y-4">
+            <p className="text-2xl font-semibold text-gray-100">
+              Record audio directly
             </p>
             <Button
-              size="lg" // Make button larger
-              className="px-8 py-6 text-lg bg-teal-500 hover:bg-teal-600 text-white rounded-lg shadow-md transition-transform transform hover:scale-105" // Custom styles: teal accent, larger padding/text, shadow, hover effect
+              size="lg"
+              className={`px-8 py-6 text-lg rounded-lg shadow-lg transition-all duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 ${isRecording ? 'bg-red-600 hover:bg-red-700 focus:ring-red-500' : 'bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 focus:ring-orange-500'}`}
               onClick={isRecording ? stopRecording : startRecording}
             >
               {isRecording ? (
                 <>
-                  <Icons.pause className="mr-2 h-5 w-5" />
+                  <Icons.pause className="mr-2 h-5 w-5 animate-pulse" />
                   Stop Recording
                 </>
               ) : (
                 <>
                   <Icons.record className="mr-2 h-5 w-5" />
-                  Record
+                  Start Recording
                 </>
               )}
             </Button>
+            {/* Conditionally render Recording Indicator */}
+            {isRecording && <RecordingIndicator stream={mediaStream} />}
           </div>
 
           {/* OR Separator */}
-          <div className="flex justify-center">
-            <p className="text-3xl font-bold text-gray-400">OR</p>
+          <div className="flex items-center justify-center space-x-4">
+            <div className="flex-grow border-t border-gray-600"></div>
+            <span className="text-xl font-bold text-gray-400">OR</span>
+            <div className="flex-grow border-t border-gray-600"></div>
           </div>
 
           {/* Upload Section */}
-          <div className="flex flex-col items-center md:items-start space-y-4">
-            <p className="text-2xl font-medium text-gray-700">
-              Upload your own audio
+          <div className="flex flex-col items-center space-y-4">
+            <p className="text-2xl font-semibold text-gray-100">
+              Upload your own audio file
             </p>
-            {/* Style the input wrapper for better layout */}
-            <div className="w-full max-w-xs">
+            <div className="w-full max-w-md">
+              <label htmlFor="audioUpload" className="sr-only">Upload audio file</label>
               <Input
                 type="file"
                 id="audioUpload"
-                className="w-full text-base text-gray-700 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-teal-100 file:text-teal-700 hover:file:bg-teal-200 cursor-pointer" // Tailwind classes for styling the file input
+                accept="audio/*" // Be more specific about acceptable file types
+                className="w-full text-base text-gray-300 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-gray-700 file:text-gray-200 hover:file:bg-gray-600 cursor-pointer transition-colors duration-200 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-red-500"
                 onChange={handleFileChange}
               />
             </div>
           </div>
-        </div>
 
-        {/* Conditionally render Recording Indicator */}
-        {isRecording && <RecordingIndicator stream={mediaStream} />}
+          {/* Display selected/recorded file */}
+          {audioFile && !isRecording && (
+            <div className="my-4 p-4 bg-gray-700 border border-gray-600 rounded-lg text-green-400 text-center animate-fade-in">
+              Ready to analyze: <span className="font-semibold">{audioFile.name}</span>
+            </div>
+          )}
 
-        {/* Display selected/recorded file */}
-        {audioFile && !isRecording && (
-          <div className="my-8 p-4 bg-blue-50 border border-blue-200 rounded-lg text-blue-800">
-            Selected file: <span className="font-semibold">{audioFile.name}</span>
+          {/* Optional Script Input */}
+          <div className="w-full space-y-3">
+            <label
+              htmlFor="scriptText"
+              className="block text-lg font-medium text-gray-200 text-center"
+            >
+              Paste Script (Optional for Accuracy)
+            </label>
+            <Textarea
+              id="scriptText"
+              placeholder="Pasting your script here helps the analysis..."
+              className="w-full p-4 bg-gray-700 border-gray-600 rounded-lg shadow-sm focus:ring-red-500 focus:border-red-500 text-base text-gray-100 transition-colors duration-200" // Enhanced styling
+              rows={4}
+              onChange={handleScriptChange}
+              value={scriptText}
+            />
+            <p className="text-sm text-gray-400 text-center">
+              Comparing audio against a script can improve analysis accuracy.
+            </p>
           </div>
-        )}
 
-        {/* Optional Script Input */}
-        <div className="w-full max-w-2xl mx-auto mb-12">
-          <label
-            htmlFor="scriptText"
-            className="block text-lg font-medium text-gray-700 mb-2"
-          >
-            Paste Script (Optional)
-          </label>
-          <Textarea
-            id="scriptText"
-            placeholder="Paste your script here to compare against the audio..."
-            className="w-full p-4 border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 text-base" // Enhanced styling
-            rows={4}
-            onChange={handleScriptChange}
-            value={scriptText}
-          />
-          <p className="text-sm text-gray-500 mt-2">
-            Comparing your audio against a script can improve analysis accuracy.
-          </p>
-        </div>
+          {/* Analyze Button Container */}
+          <div className="text-center pt-4">
+            <Button
+              size="lg"
+              className="px-10 py-6 text-xl bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white rounded-lg shadow-lg transition-all duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-red-500 disabled:opacity-50 disabled:scale-100 disabled:cursor-not-allowed disabled:from-gray-500 disabled:to-gray-600"
+              onClick={analyzeAudio}
+              disabled={!audioFile || isRecording} // Disable if no audio file OR currently recording
+            >
+              Analyze Audio
+            </Button>
+          </div>
 
-        {/* Analyze Button */}
-        <Button
-          size="lg" // Large button size
-          className="px-10 py-7 text-xl bg-blue-900 hover:bg-blue-800 text-white rounded-lg shadow-lg transition-transform transform hover:scale-105 disabled:opacity-50 disabled:scale-100" // Custom styles: primary blue, larger padding/text, shadow, hover effect, disabled state
-          onClick={analyzeAudio}
-          disabled={!audioFile || isRecording} // Disable if no audio file OR currently recording
-        >
-          Analyze Audio
-        </Button>
+        </CardContent>
+      </Card>
 
-        {/* Placeholder for Audio Timeline/Results */}
-        <div className="mt-16 w-full">
-          {/* Conditionally render timeline or results once analysis is done */}
-          {/* <AudioTimeline /> */}
-          {/* Example: Add a placeholder or loading indicator */}
-          {/* {isAnalyzing && <p>Analyzing...</p>} */}
-          {/* {analysisResults && <DisplayResults results={analysisResults} />} */}
-        </div>
-      </main>
+      {/* Placeholder for Audio Timeline/Results */}
+      <div className="mt-16 w-full max-w-4xl">
+        {/* Conditionally render timeline or results once analysis is done */}
+        {/* Example: Add a placeholder or loading indicator */}
+        {/* {isAnalyzing && <p className="text-center text-xl text-gray-400">Analyzing...</p>} */}
+        {/* {analysisResults && <DisplayResults results={analysisResults} />} */}
+        {/* <AudioTimeline /> */}
+      </div>
 
       {/* Footer (Optional) */}
       {/* <footer className="mt-16 text-gray-500 text-sm">
         Footer content here
       </footer> */}
+
+      {/* Basic CSS for animations (can be moved to globals.css) */}
+      <style jsx global>{`
+        @keyframes pulse-slow {
+          50% { opacity: 0.8; }
+        }
+        .animate-pulse-slow {
+          animation: pulse-slow 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        @keyframes fade-in {
+          from { opacity: 0; transform: translateY(10px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in {
+          animation: fade-in 0.5s ease-out forwards;
+        }
+      `}</style>
     </div>
   );
 }
