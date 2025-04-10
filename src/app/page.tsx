@@ -102,7 +102,7 @@ export default function Home() {
       {/* Header Section */}
       <header className="mb-12 text-center">
         <h1 className="text-6xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-orange-400 via-red-500 to-red-600 mb-4 animate-pulse-slow">
-          Voice Up
+          SpeakUp Studio
         </h1>
         <p className="text-xl text-gray-300">
           Refine your voice recordings with cutting-edge analysis.
