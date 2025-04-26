@@ -1,7 +1,7 @@
 'use client';
 
-// Import the newly exported async function and type
-import { analyzeAudio, CleanSegment } from '@/lib/AudioAnalyzer'; 
+// Import the updated types/functions
+import { analyzeAudio, CleanSegment } from '@/lib/AudioAnalyzer'; // analyzeAudio signature needs to match server action
 import { useState, useRef, useEffect } from 'react';
 import { AudioTimeline } from '@/components/audio-timeline';
 import { Button } from '@/components/ui/button';
@@ -10,6 +10,27 @@ import { Icons } from '@/components/icons';
 import { Input } from '@/components/ui/input';
 import RecordingIndicator from '@/components/recording-indicator';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+
+// Helper function to convert Blob/File to Base64
+function blobToBase64(blob: Blob): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      // result contains the data as a data: URL. We only need the base64 part.
+      const base64String = (reader.result as string)?.split(',')[1];
+      if (base64String) {
+        resolve(base64String);
+      } else {
+        reject(new Error("Failed to read blob as base64"));
+      }
+    };
+    reader.onerror = (error) => {
+      reject(error);
+    };
+    reader.readAsDataURL(blob); // Reads the blob as a data: URL containing base64
+  });
+}
+
 
 export default function Home() {
   const [audioFile, setAudioFile] = useState<File | null>(null);
@@ -87,11 +108,17 @@ export default function Home() {
             }
 
             try {
-                const audioBlob = new Blob(currentChunks, { type: 'audio/wav' });
-                console.log("Audio Blob created, size:", audioBlob.size);
-                const audioFile = new File([audioBlob], 'recording.wav', { type: 'audio/wav' });
+                // Determine mime type (browser specific, may need refinement)
+                const mimeType = mediaRecorder.current?.mimeType || 'audio/wav'; // Default or get from recorder
+                const audioBlob = new Blob(currentChunks, { type: mimeType });
+                console.log(`Audio Blob created, type: ${mimeType}, size:`, audioBlob.size);
+
+                // Create a File object (needed for base64 conversion later)
+                const recordingName = `recording.${mimeType.split('/')[1] || 'wav'}`;
+                const audioFile = new File([audioBlob], recordingName, { type: mimeType });
                 setAudioFile(audioFile);
                 console.log("Audio File object created:", audioFile.name);
+
                 const url = URL.createObjectURL(audioBlob);
                 console.log("Object URL created:", url);
                 setAudioPreviewUrl(url);
@@ -131,7 +158,7 @@ export default function Home() {
       console.log("Calling mediaRecorder.current.stop()");
       mediaRecorder.current.stop();
     } else {
-      console.warn('stopRecording called but recorder state was not "recording".');
+      console.warn('stopRecording called but recorder state was not \"recording\".');
       if (mediaStream) {
          mediaStream.getTracks().forEach(track => track.stop());
          setMediaStream(null);
@@ -141,39 +168,50 @@ export default function Home() {
     }
   };
 
-  // Updated analyzeAudio function
+  // --- Updated handleAnalyzeAudio ---
   const handleAnalyzeAudio = async () => {
-    if (!audioFile || !audioPreviewUrl) {
+    if (!audioFile) { // Only need audioFile now, not audioPreviewUrl for analysis logic
       alert('Please upload or record an audio file first.');
       return;
     }
-    console.log('Analyzing audio:', audioFile.name, 'with script:', scriptText ? 'Yes' : 'No');
-    setIsAnalyzing(true); // Set loading state
-    setAnalysisResults(null); // Clear previous results
+    console.log('Starting analysis for:', audioFile.name, 'with script:', scriptText ? 'Yes' : 'No');
+    setIsAnalyzing(true);
+    setAnalysisResults(null);
 
     try {
-      // Call the exported async function directly
-      const analysisResult = await analyzeAudio(audioPreviewUrl, scriptText);
-      console.log('Analysis Result:', analysisResult);
-      
-      // Update state with the segments found
+      // 1. Convert the audioFile (Blob) to Base64
+      console.log('Converting audio file to Base64...');
+      const audioBase64 = await blobToBase64(audioFile);
+      console.log(`Conversion complete. Base64 length: ${audioBase64.length}`);
+
+      // 2. Call the server action with base64 data and script
+      console.log('Calling analyzeAudio server action...');
+      // Pass the base64 string and script directly. The server action `analyzeAudio`
+      // defined in AudioAnalyzer.ts should now expect these two arguments.
+      const analysisResult = await analyzeAudio(audioBase64, scriptText);
+      console.log('Analysis Result received from server:', analysisResult);
+
+      // 3. Update state with the segments found
       if (analysisResult && analysisResult.segments) {
           setAnalysisResults(analysisResult.segments);
       } else {
-          setAnalysisResults([]); // Set to empty array if no segments found
+          setAnalysisResults([]);
           console.warn("Analysis returned no segments.");
       }
 
     } catch (error) {
-       console.error('Error during audio analysis:', error);
+       console.error('Error during audio analysis process:', error);
        alert(`Audio analysis failed: ${error instanceof Error ? error.message : String(error)}`);
-       setAnalysisResults(null); // Clear results on error
+       setAnalysisResults(null);
     } finally {
-        setIsAnalyzing(false); // Clear loading state
+        setIsAnalyzing(false);
+        console.log('Analysis process finished.');
     }
   };
+  // --- End Updated handleAnalyzeAudio ---
 
   useEffect(() => {
+    // Cleanup audioPreviewUrl when component unmounts or url changes
     const currentUrl = audioPreviewUrl;
     return () => {
       if (currentUrl) {
@@ -304,8 +342,8 @@ export default function Home() {
             <Button
               size="lg"
               className="px-10 py-6 text-xl bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white rounded-lg shadow-lg transition-all duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-red-500 disabled:opacity-50 disabled:scale-100 disabled:cursor-not-allowed disabled:from-gray-500 disabled:to-gray-600"
-              onClick={handleAnalyzeAudio} // Use the renamed handler
-              disabled={!audioFile || isRecording || isPreviewing || isAnalyzing} // Disable analyze button while analyzing
+              onClick={handleAnalyzeAudio}
+              disabled={!audioFile || isRecording || isPreviewing || isAnalyzing} // Disable button if no file, recording, previewing or analyzing
             >
                 {isAnalyzing ? (
                     <>
@@ -322,12 +360,12 @@ export default function Home() {
       </Card>
 
       {/* Display Analysis Results/Timeline */}
-      {analysisResults && audioPreviewUrl && (
+      {analysisResults && audioPreviewUrl && ( // Keep audioPreviewUrl here for the timeline display
           <div className="mt-16 w-full max-w-4xl">
               <h2 className="text-3xl font-bold text-center text-gray-100 mb-6">Analysis Results</h2>
               {analysisResults.length > 0 ? (
                   <AudioTimeline
-                      audioUrl={audioPreviewUrl}
+                      audioUrl={audioPreviewUrl} // Timeline still needs the URL for playback
                       segments={analysisResults}
                   />
               ) : (
@@ -335,7 +373,7 @@ export default function Home() {
               )}
           </div>
       )}
-      {isAnalyzing && (
+      {isAnalyzing && !analysisResults && ( // Show spinner only while analyzing AND before results are shown
           <div className="mt-16 w-full max-w-4xl text-center text-gray-300">
               <Icons.spinner className="h-8 w-8 animate-spin inline-block mr-2" />
               <p>Analyzing audio, please wait...</p>

@@ -2,9 +2,10 @@ import * as z from 'zod';
 import fetch from 'node-fetch'; // Using node-fetch for broader compatibility
 import { execSync } from 'child_process'; // Import for gcloud fallback
 
-// --- Schemas (remain the same) ---
+// --- Schemas ---
+// Modified Input Schema: Expects base64 audio instead of URL
 export const AnalyzeAudioForCleanSegmentsInputSchema = z.object({
-  audioUrl: z.string().url(),
+  audioBase64: z.string().describe('Base64 encoded audio data.'), // Changed from audioUrl
   script: z.string().optional(),
 });
 export type AnalyzeAudioForCleanSegmentsInput = z.infer<
@@ -89,29 +90,24 @@ export async function analyzeAudioForCleanSegments(
     if (!validationResult.success) {
         throw new Error(`Invalid input: ${validationResult.error.message}`);
     }
-    const { audioUrl, script } = validationResult.data; // Use validated data
+    // Use validated data: audioBase64 instead of audioUrl
+    const { audioBase64, script } = validationResult.data;
 
 
     if (!DEEPSEEK_API_KEY) {
         throw new Error("DeepSeek API Key (DEEPSEEK_API_KEY) is not configured.");
     }
 
-    // === 1. Fetch Audio Data ===
-    console.log(`Fetching audio from: ${audioUrl}`);
+    // === 1. Convert Base64 Audio to Buffer ===
+    // Remove the fetching logic, directly use the input base64 data
+    console.log(`Processing base64 audio input...`);
     let audioBuffer: Buffer;
     try {
-        // Use node-fetch explicitly
-        const audioResponse = await fetch(audioUrl);
-        if (!audioResponse.ok) {
-            throw new Error(`Failed to fetch audio: ${audioResponse.status} ${audioResponse.statusText}`);
-        }
-        // Read as ArrayBuffer then convert to Buffer for base64 encoding
-        const audioArrayBuffer = await audioResponse.arrayBuffer();
-        audioBuffer = Buffer.from(audioArrayBuffer);
-        console.log(`Audio fetched successfully (${(audioBuffer.length / 1024).toFixed(2)} KB).`);
+        audioBuffer = Buffer.from(audioBase64, 'base64');
+        console.log(`Audio buffer created successfully (${(audioBuffer.length / 1024).toFixed(2)} KB).`);
     } catch (error: any) {
-        console.error("Error fetching audio:", error);
-        throw new Error(`Failed to fetch audio data from URL: ${error.message}`);
+        console.error("Error creating buffer from base64 audio:", error);
+        throw new Error(`Failed to decode base64 audio data: ${error.message}`);
     }
 
     // === 2. Perform Speech-to-Text ===
@@ -123,10 +119,10 @@ export async function analyzeAudioForCleanSegments(
     try {
         googleAccessToken = await getGoogleAccessToken(); // Fetch token
 
-        const audioBase64 = audioBuffer.toString('base64');
+        // Use the audio buffer directly for base64 encoding for the STT API
         const sttRequest = {
             config: {
-                // encoding: 'LINEAR16', // Example: Specify encoding if known (e.g., 'LINEAR16', 'MP3', 'FLAC', 'WEBM_OPUS').
+                // encoding: 'LINEAR16', // Example: Specify encoding if known (e.g., 'LINEAR16', 'MP3', 'FLAC', 'WEBM_OPUS'). Needs to match the blob's actual encoding.
                 // sampleRateHertz: 16000, // Example: Specify if known
                 languageCode: 'en-US', // Adjust language code as needed
                 enableWordTimeOffsets: true, // Crucial for getting word timings
@@ -137,6 +133,7 @@ export async function analyzeAudioForCleanSegments(
                 // useEnhanced: true,
             },
             audio: {
+                // Content is still base64, but derived from the input base64, not fetched
                 content: audioBase64,
             },
         };
