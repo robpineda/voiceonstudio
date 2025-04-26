@@ -223,8 +223,8 @@ export default function Home() {
                 </>
               )}
             </Button>
-             {/* Show Recording Indicator when recording OR previewing */}
-            {(isRecording || isPreviewing) && <RecordingIndicator stream={mediaStream} isPreviewing={isPreviewing} />}
+             {/* Show Recording Indicator ONLY when recording */}
+            {isRecording && <RecordingIndicator stream={mediaStream} isPreviewing={false} />}
           </div>
 
            {/* Audio Player */}
