@@ -92,10 +92,10 @@ export default function Home() {
     <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-800 text-white p-8">
       <header className="mb-12 text-center">
         <h1 className="text-6xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-orange-400 via-red-500 to-red-600 mb-4 animate-pulse-slow">
-          Voice Polisher
+          SpeakUp Studio
         </h1>
         <p className="text-xl text-gray-300">
-          Refine your voice recordings with cutting-edge analysis.
+          Refine your voice recordings.
         </p>
       </header>
 
